@@ -9,6 +9,10 @@
                 "http://ericcervin.github.io"
                 "http://noiselife.org"])
 
+(defn html-title [h]
+  (nth (re-seq #"<title>.*</title>" h) 0))
+        
+
 (deftest sites-up 
   (is (every? #(= 200 %) (mapv #(:status (client/get %)) all-sites))))
 
@@ -22,9 +26,10 @@
         failing-urls (mapv #(str % "/platypus") all-sites)
         failing-responses (mapv #(client/get % {:throw-exceptions false}) failing-urls)
         failing-statuses (mapv :status failing-responses)
-        failing-bodies (mapv :body failing-responses)] 
+        failing-bodies (mapv :body failing-responses)
+        failing-titles (mapv html-title failing-bodies)] 
     (is (every? #(= 404 %) failing-statuses))
-    (is (every? #(clojure.string/includes? % "<title>Error 404 Not Found</title>") failing-bodies))
+    (is (every? #(= % "<title>Error 404 Not Found</title>") failing-titles))
     (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") failing-bodies))))
 
 
@@ -32,18 +37,20 @@
   (let [urls ["http://ericervin.org/destiny" "http://ericervin.com/destiny"]
         responses (mapv #(client/get % {:throw-exceptions false}) urls)
         statuses (mapv :status responses)
-        bodies (mapv :body responses)]
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)]
     (is (every? #(= 200 %) statuses))
-    (is (every? #(clojure.string/includes? % "<title>Destiny</title>") bodies))    
+    (is (every? #(= % "<title>Destiny</title>") titles))    
     (is (every? #(clojure.string/includes? % "<h1>Star Wars Destiny</h1>") bodies))))
 
 (deftest destiny-cards
   (let [urls ["http://ericervin.org/destiny/cards?" "http://ericervin.com/destiny/cards?"]
         responses (mapv #(client/get % {:throw-exceptions false}) urls)
         statuses (mapv :status responses)
-        bodies (mapv :body responses)]
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)]
     (is (every? #(= 200 %) statuses))
-    (is (every? #(clojure.string/includes? % "<title>  Cards</title>") bodies))))    
+    (is (every? #(= % "<title>  Cards</title>") titles))))    
     
 
 (defn -main []
