@@ -1,6 +1,8 @@
 (ns clj-of-testing.core
   (:require [clj-http.client :as client]
-            [clojure.test :refer [is deftest run-tests]]))
+            [clojure.test :refer [is deftest run-tests]]
+            [net.cgrand.enlive-html :as html]))
+            
 
 (def all-sites ["http://ericervin.org" 
                 "http://ericervin.com"
@@ -33,7 +35,16 @@
         bodies (mapv :body responses)]
     (is (every? #(= 200 %) statuses))
     (is (every? #(clojure.string/includes? % "<title>Destiny</title>") bodies))    
-    (is (every? #(clojure.string/includes? % "<h1>Star Wars Destiny</h1>") bodies))))    
+    (is (every? #(clojure.string/includes? % "<h1>Star Wars Destiny</h1>") bodies))))
+
+(deftest destiny-cards
+  (let [urls ["http://ericervin.org/destiny/cards?" "http://ericervin.com/destiny/cards?"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(clojure.string/includes? % "<title>  Cards</title>") bodies))))    
+    
 
 (defn -main []
   (run-tests))
