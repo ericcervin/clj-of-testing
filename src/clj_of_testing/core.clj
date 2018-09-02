@@ -11,6 +11,9 @@
 
 (defn html-title [h]
   (nth (re-seq #"<title>.*</title>" h) 0))
+
+(defn html-header [h]
+  (nth (re-seq #"<h1>.*</h1>" h) 0))
         
 
 (deftest sites-up 
@@ -27,7 +30,8 @@
         failing-responses (mapv #(client/get % {:throw-exceptions false}) failing-urls)
         failing-statuses (mapv :status failing-responses)
         failing-bodies (mapv :body failing-responses)
-        failing-titles (mapv html-title failing-bodies)] 
+        failing-titles (mapv html-title failing-bodies)]
+       
     (is (every? #(= 404 %) failing-statuses))
     (is (every? #(= % "<title>Error 404 Not Found</title>") failing-titles))
     (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") failing-bodies))))
@@ -38,10 +42,11 @@
         responses (mapv #(client/get % {:throw-exceptions false}) urls)
         statuses (mapv :status responses)
         bodies (mapv :body responses)
-        titles (mapv html-title bodies)]
+        titles (mapv html-title bodies)
+        headers (mapv html-header bodies)]
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>Destiny</title>") titles))    
-    (is (every? #(clojure.string/includes? % "<h1>Star Wars Destiny</h1>") bodies))))
+    (is (every? #(= % "<h1>Star Wars Destiny</h1>") headers))))
 
 (deftest destiny-cards
   (let [urls ["http://ericervin.org/destiny/cards?" "http://ericervin.com/destiny/cards?"]
