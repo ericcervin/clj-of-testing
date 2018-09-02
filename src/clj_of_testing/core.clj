@@ -26,6 +26,15 @@
     (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") failing-bodies))))
 
 
+(deftest destiny
+  (let [urls ["http://ericervin.org/destiny" "http://ericervin.com/destiny"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(clojure.string/includes? % "<title>Destiny</title>") bodies))    
+    (is (every? #(clojure.string/includes? % "<h1>Star Wars Destiny</h1>") bodies))))    
+
 (defn -main []
   (run-tests))
             
