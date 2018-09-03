@@ -108,6 +108,17 @@
     (is (every? #(= % "<title>Count by Artist</title>") titles))
     (is (apply = tables)))) 
 
+(deftest gematria
+  (let [urls ["http://ericervin.org/gematria" "http://ericervin.com/gematria"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        headers (mapv html-header bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Gematria</title>") titles))    
+    (is (every? #(= % "<h1>Gematria</h1>") headers))))
+
 (defn -main []
   (run-tests))
             
