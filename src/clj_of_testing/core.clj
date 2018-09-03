@@ -74,7 +74,18 @@
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>Count by Rarity</title>") titles))
     (is (apply = tables))))   
-    
+
+(deftest discogs
+  (let [urls ["http://ericervin.org/discogs" "http://ericervin.com/discogs"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        headers (mapv html-header bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Discogs</title>") titles))    
+    (is (every? #(= % "<h1>My Record Collection</h1>") headers))))
+
 
 (defn -main []
   (run-tests))
