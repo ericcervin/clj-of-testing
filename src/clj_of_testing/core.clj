@@ -9,6 +9,7 @@
                 {:url "http://ericcervin.github.io" :title "<title>ericcervin.github.io</title>" :header nil}
                 {:url "http://noiselife.org" :title "<title>noiselife-dot-org</title>" :header nil}])
 
+
 (defn html-title [h]
   (nth (re-seq #"<title>.*</title>" h) 0))
 
@@ -21,7 +22,19 @@
 (defn html-top-table [h]
   (nth (re-seq #"<table>.*</table>" h) 0))
 
-(deftest sites-up
+(defn parse-pages [v]
+  (let [urls v
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        headers (mapv html-header bodies)]
+    {:statuses statuses
+     :titles titles
+     :headers headers}))
+     
+
+(deftest all-sites-up
   (is (every? true? (for [s all-sites]
                       (let [url (:url s)
                             response (client/get (:url s))
@@ -41,14 +54,15 @@
 (deftest all-sites-have-404s
   (let [all-sites (filter #(not= "http://ericcervin.github.io" (:url %)) all-sites)
         failing-urls (mapv #(str (:url %) "/platypus") all-sites)
-        failing-responses (mapv #(client/get % {:throw-exceptions false}) failing-urls)
-        failing-statuses (mapv :status failing-responses)
-        failing-bodies (mapv :body failing-responses)
-        failing-titles (mapv html-title failing-bodies)]
+        results-map (parse-pages failing-urls)]
+        ;;failing-responses (mapv #(client/get % {:throw-exceptions false}) failing-urls)
+        ;;failing-statuses (mapv :status failing-responses)
+        ;;failing-bodies (mapv :body failing-responses)
+        ;;failing-titles (mapv html-title failing-bodies)]
        
-    (is (every? #(= 404 %) failing-statuses))
-    (is (every? #(= % "<title>Error 404 Not Found</title>") failing-titles))
-    (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") failing-bodies))))
+    (is (every? #(= 404 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Error 404 Not Found</title>") (:titles results-map)))
+    (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") (:bodies results-map)))))
 
 
 (deftest destiny
