@@ -14,7 +14,9 @@
 
 (defn html-header [h]
   (nth (re-seq #"<h1>.*</h1>" h) 0))
-        
+
+(defn html-trs [h]
+  (html/select (html/html-snippet stuff) [:tr]))
 
 (deftest sites-up 
   (is (every? #(= 200 %) (mapv #(:status (client/get %)) all-sites))))
@@ -53,9 +55,11 @@
         responses (mapv #(client/get % {:throw-exceptions false}) urls)
         statuses (mapv :status responses)
         bodies (mapv :body responses)
-        titles (mapv html-title bodies)]
+        titles (mapv html-title bodies)
+        trs-counts (mapv #(count (html-trs %)) bodies)]
     (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>  Cards</title>") titles))))    
+    (is (every? #(= % "<title>  Cards</title>") titles))
+    (is (apply = trs-counts))))    
     
 
 (defn -main []
