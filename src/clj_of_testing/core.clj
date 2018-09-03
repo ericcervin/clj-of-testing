@@ -145,6 +145,17 @@
     (is (every? #(= % "<title>Gematria</title>") titles))
     (is (apply = trs-counts))))    
    
+(deftest philosophy
+  (let [urls ["http://ericervin.org/philosophy" "http://ericervin.com/philosophy"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        headers (mapv html-header bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Philosophy USA</title>") titles))    
+    (is (every? #(= % "<h1>Philosophy USA</h1>") headers))))
+
 
 (defn -main []
   (run-tests))
