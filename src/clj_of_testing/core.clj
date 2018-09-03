@@ -168,6 +168,17 @@
     (is (every? #(= % "<title>Philosophy Degrees Completed by Institution</title>") titles))
     (is (apply = trs-counts)))) 
 
+(deftest powerball
+  (let [urls ["http://ericervin.org/powerball" "http://ericervin.com/powerball"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        headers (mapv html-header bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Powerball</title>") titles))    
+    (is (every? #(= % "<h1>Powerball</h1>") headers))))
+
 (defn -main []
   (run-tests))
             
