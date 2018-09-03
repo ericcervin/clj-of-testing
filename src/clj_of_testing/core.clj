@@ -86,6 +86,17 @@
     (is (every? #(= % "<title>Discogs</title>") titles))    
     (is (every? #(= % "<h1>My Record Collection</h1>") headers))))
 
+(deftest discogs-releases
+  (let [urls ["http://www.ericervin.org/discogs/releases?" "http://www.ericervin.com/discogs/releases?"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        trs-counts (mapv #(count (html-trs %)) bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Releases by Artist</title>") titles))
+    (is (apply = trs-counts))))    
+
 
 (defn -main []
   (run-tests))
