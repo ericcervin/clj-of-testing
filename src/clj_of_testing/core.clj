@@ -4,10 +4,10 @@
             [net.cgrand.enlive-html :as html]))
             
 
-(def all-sites ["http://ericervin.org" 
-                "http://ericervin.com"
-                "http://ericcervin.github.io"
-                "http://noiselife.org"])
+(def all-sites [{:url "http://ericervin.org" :title "<title>Eric Ervin Dot Org</title>" :header "<h1>Eric Ervin Dot Org</h1>"}  
+                {:url "http://ericervin.com" :title "<title>Eric Ervin Dot Com</title>" :header "<h1>Eric Ervin Dot Com</h1>"}
+                {:url "http://ericcervin.github.io" :title "<title>ericcervin.github.io</title>" :header nil}
+                {:url "http://noiselife.org" :title "<title>noiselife-dot-org</title>" :header nil}])
 
 (defn html-title [h]
   (nth (re-seq #"<title>.*</title>" h) 0))
@@ -21,17 +21,26 @@
 (defn html-top-table [h]
   (nth (re-seq #"<table>.*</table>" h) 0))
 
-(deftest sites-up 
-  (is (every? #(= 200 %) (mapv #(:status (client/get %)) all-sites))))
+(deftest sites-up
+  (is (every? true? (for [s all-sites]
+                      (let [url (:url s)
+                            response (client/get (:url s))
+                            status (:status response)
+                            body (:body response)
+                            title (html-title body)
+                            header (html-header body)]
+                       (and (= 200 status)
+                            (= (:title s) title)
+                            (= (:header s) header)))))))
 
 (deftest all-sites-have-robots
-  (let [robot-urls (mapv #(str % "/robots.txt") all-sites)
+  (let [robot-urls (mapv #(str (:url %) "/robots.txt") all-sites)
         robot-bodies (mapv #(:body (client/get %)) robot-urls)]
        (is (every? #(clojure.string/includes? % "User-agent: *\nDisallow:") robot-bodies))))
 
 (deftest all-sites-have-404s
-  (let [all-sites (filter #(not= "http://ericcervin.github.io" %) all-sites)
-        failing-urls (mapv #(str % "/platypus") all-sites)
+  (let [all-sites (filter #(not= "http://ericcervin.github.io" (:url %)) all-sites)
+        failing-urls (mapv #(str (:url %) "/platypus") all-sites)
         failing-responses (mapv #(client/get % {:throw-exceptions false}) failing-urls)
         failing-statuses (mapv :status failing-responses)
         failing-bodies (mapv :body failing-responses)
