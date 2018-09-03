@@ -16,9 +16,9 @@
   (nth (re-seq #"<h1>.*</h1>" h) 0))
 
 (defn html-trs [h]
-  (html/select (html/html-snippet stuff) [:tr]))
+  (html/select (html/html-snippet h) [:tr]))
 
-(defn html-table [h]
+(defn html-top-table [h]
   (nth (re-seq #"<table>.*</table>" h) 0))
 
 (deftest sites-up 
@@ -70,7 +70,7 @@
         statuses (mapv :status responses)
         bodies (mapv :body responses)
         titles (mapv html-title bodies)
-        tables (mapv html-table bodies)]
+        tables (mapv html-top-table bodies)]
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>Count by Rarity</title>") titles))
     (is (apply = tables))))   
@@ -103,7 +103,7 @@
         statuses (mapv :status responses)
         bodies (mapv :body responses)
         titles (mapv html-title bodies)
-        tables (mapv html-table bodies)]
+        tables (mapv html-top-table bodies)]
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>Count by Artist</title>") titles))
     (is (apply = tables)))) 
@@ -118,6 +118,21 @@
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>Gematria</title>") titles))    
     (is (every? #(= % "<h1>Gematria</h1>") headers))))
+
+(deftest gematria-search-word
+  (let [urls ["http://www.ericervin.org/gematria/search?word=fish" "http://www.ericervin.com/gematria/search?word=fish"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        trs-counts (mapv #(count (html-trs %)) bodies)
+        tables (mapv html-top-table bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Gematria</title>") titles))
+    (is (apply = tables))
+    (is (apply = trs-counts))    
+   ))
+;;gematria search values
 
 (defn -main []
   (run-tests))
