@@ -130,9 +130,21 @@
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>Gematria</title>") titles))
     (is (apply = tables))
-    (is (apply = trs-counts))    
-   ))
-;;gematria search values
+    (is (apply = trs-counts))))    
+   
+
+(deftest gematria-search-value
+  (let [urls ["http://www.ericervin.org/gematria/search?value=65" "http://www.ericervin.com/gematria/search?value=65"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        trs-counts (mapv #(count (html-trs %)) bodies)
+        tables (mapv html-top-table bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Gematria</title>") titles))
+    (is (apply = trs-counts))))    
+   
 
 (defn -main []
   (run-tests))
