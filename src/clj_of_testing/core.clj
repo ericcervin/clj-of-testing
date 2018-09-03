@@ -28,10 +28,12 @@
         statuses (mapv :status responses)
         bodies (mapv :body responses)
         titles (mapv html-title bodies)
-        headers (mapv html-header bodies)]
+        headers (mapv html-header bodies)
+        trs-counts (mapv #(count (html-trs %)) bodies)]
     {:statuses statuses
      :titles titles
-     :headers headers}))
+     :headers headers
+     :trs-counts trs-counts}))
      
 
 (deftest all-sites-up
@@ -55,11 +57,7 @@
   (let [all-sites (filter #(not= "http://ericcervin.github.io" (:url %)) all-sites)
         failing-urls (mapv #(str (:url %) "/platypus") all-sites)
         results-map (parse-pages failing-urls)]
-        ;;failing-responses (mapv #(client/get % {:throw-exceptions false}) failing-urls)
-        ;;failing-statuses (mapv :status failing-responses)
-        ;;failing-bodies (mapv :body failing-responses)
-        ;;failing-titles (mapv html-title failing-bodies)]
-       
+    
     (is (every? #(= 404 %) (:statuses results-map)))
     (is (every? #(= % "<title>Error 404 Not Found</title>") (:titles results-map)))
     (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") (:bodies results-map)))))
@@ -67,25 +65,17 @@
 
 (deftest destiny
   (let [urls ["http://ericervin.org/destiny" "http://ericervin.com/destiny"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        headers (mapv html-header bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Destiny</title>") titles))    
-    (is (every? #(= % "<h1>Star Wars Destiny</h1>") headers))))
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Destiny</title>") (:titles results-map)))    
+    (is (every? #(= % "<h1>Star Wars Destiny</h1>") (:headers results-map)))))
 
 (deftest destiny-cards
   (let [urls ["http://ericervin.org/destiny/cards?" "http://ericervin.com/destiny/cards?"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        trs-counts (mapv #(count (html-trs %)) bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>  Cards</title>") titles))
-    (is (apply = trs-counts))))    
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>  Cards</title>") (:titles results-map)))
+    (is (apply = (:trs-counts results-map)))))    
     
 (deftest destiny-reports
   (let [urls ["http://ericervin.org/destiny/reports/rarity_count" "http://ericervin.com/destiny/reports/rarity_count"]
