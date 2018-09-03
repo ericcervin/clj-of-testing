@@ -156,6 +156,17 @@
     (is (every? #(= % "<title>Philosophy USA</title>") titles))    
     (is (every? #(= % "<h1>Philosophy USA</h1>") headers))))
 
+(deftest philosophy-reports
+  (let [urls ["http://ericervin.org/philosophy/reports/inst_count" "http://ericervin.com/philosophy/reports/inst_count"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        trs-counts (mapv #(count (html-trs %)) bodies)
+        tables (mapv html-top-table bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Philosophy Degrees Completed by Institution</title>") titles))
+    (is (apply = trs-counts)))) 
 
 (defn -main []
   (run-tests))
