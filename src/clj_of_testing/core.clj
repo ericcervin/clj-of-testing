@@ -18,6 +18,9 @@
 (defn html-trs [h]
   (html/select (html/html-snippet stuff) [:tr]))
 
+(defn html-table [h]
+  (nth (re-seq #"<table>.*</table>" h) 0))
+
 (deftest sites-up 
   (is (every? #(= 200 %) (mapv #(:status (client/get %)) all-sites))))
 
@@ -60,6 +63,17 @@
     (is (every? #(= 200 %) statuses))
     (is (every? #(= % "<title>  Cards</title>") titles))
     (is (apply = trs-counts))))    
+    
+(deftest destiny-reports
+  (let [urls ["http://ericervin.org/destiny/reports/rarity_count" "http://ericervin.com/destiny/reports/rarity_count"]
+        responses (mapv #(client/get % {:throw-exceptions false}) urls)
+        statuses (mapv :status responses)
+        bodies (mapv :body responses)
+        titles (mapv html-title bodies)
+        tables (mapv html-table bodies)]
+    (is (every? #(= 200 %) statuses))
+    (is (every? #(= % "<title>Count by Rarity</title>") titles))
+    (is (apply = tables))))   
     
 
 (defn -main []
