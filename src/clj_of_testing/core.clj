@@ -103,38 +103,25 @@
 
 (deftest discogs-reports
   (let [urls ["http://www.ericervin.org/discogs/reports/artist_count" "http://www.ericervin.com/discogs/reports/artist_count"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        tables (mapv html-top-table bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Count by Artist</title>") titles))
-    (is (apply = tables)))) 
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Count by Artist</title>") (:titles results-map)))
+    (is (apply = (:trs-counts results-map))))) 
 
 (deftest gematria
   (let [urls ["http://ericervin.org/gematria" "http://ericervin.com/gematria"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        headers (mapv html-header bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Gematria</title>") titles))    
-    (is (every? #(= % "<h1>Gematria</h1>") headers))))
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Gematria</title>") (:titles results-map)))    
+    (is (every? #(= % "<h1>Gematria</h1>") (:headers results-map)))))
 
 (deftest gematria-search-word
   (let [urls ["http://www.ericervin.org/gematria/search?word=fish" "http://www.ericervin.com/gematria/search?word=fish"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        trs-counts (mapv #(count (html-trs %)) bodies)
-        tables (mapv html-top-table bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Gematria</title>") titles))
-    (is (apply = tables))
-    (is (apply = trs-counts))))    
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Gematria</title>") (:titles results-map)))
+    (is (apply = (:tables results-map)))
+    (is (apply = (:trs-counts results-map)))))    
    
 
 (deftest gematria-search-value
