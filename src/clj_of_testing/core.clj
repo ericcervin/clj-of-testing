@@ -1,3 +1,5 @@
+;;for tables add code that sat x chars
+
 (ns clj-of-testing.core
   (:require [clj-http.client :as client]
             [clojure.test :refer [is deftest run-tests]]
@@ -29,11 +31,13 @@
         bodies (mapv :body responses)
         titles (mapv html-title bodies)
         headers (mapv html-header bodies)
-        trs-counts (mapv #(count (html-trs %)) bodies)]
+        trs-counts (mapv #(count (html-trs %)) bodies)
+        tables (mapv html-top-table bodies)]
     {:statuses statuses
      :titles titles
      :headers headers
-     :trs-counts trs-counts}))
+     :trs-counts trs-counts
+     :tables tables}))
      
 
 (deftest all-sites-up
@@ -57,7 +61,6 @@
   (let [all-sites (filter #(not= "http://ericcervin.github.io" (:url %)) all-sites)
         failing-urls (mapv #(str (:url %) "/platypus") all-sites)
         results-map (parse-pages failing-urls)]
-    
     (is (every? #(= 404 %) (:statuses results-map)))
     (is (every? #(= % "<title>Error 404 Not Found</title>") (:titles results-map)))
     (is (every? #(clojure.string/includes? % "<body>404 - Not Found</body>") (:bodies results-map)))))
@@ -79,36 +82,24 @@
     
 (deftest destiny-reports
   (let [urls ["http://ericervin.org/destiny/reports/rarity_count" "http://ericervin.com/destiny/reports/rarity_count"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        tables (mapv html-top-table bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Count by Rarity</title>") titles))
-    (is (apply = tables))))   
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Count by Rarity</title>") (:titles results-map)))
+    (is (apply = (:tables results-map)))))   
 
 (deftest discogs
   (let [urls ["http://ericervin.org/discogs" "http://ericervin.com/discogs"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        headers (mapv html-header bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Discogs</title>") titles))    
-    (is (every? #(= % "<h1>My Record Collection</h1>") headers))))
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Discogs</title>") (:titles results-map)))    
+    (is (every? #(= % "<h1>My Record Collection</h1>") (:headers results-map)))))
 
 (deftest discogs-releases
   (let [urls ["http://www.ericervin.org/discogs/releases?" "http://www.ericervin.com/discogs/releases?"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        trs-counts (mapv #(count (html-trs %)) bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Releases by Artist</title>") titles))
-    (is (apply = trs-counts))))    
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Releases by Artist</title>") (:titles results-map)))
+    (is (apply = (:trs-counts results-map)))))    
 
 (deftest discogs-reports
   (let [urls ["http://www.ericervin.org/discogs/reports/artist_count" "http://www.ericervin.com/discogs/reports/artist_count"]
