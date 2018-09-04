@@ -126,38 +126,24 @@
 
 (deftest gematria-search-value
   (let [urls ["http://www.ericervin.org/gematria/search?value=65" "http://www.ericervin.com/gematria/search?value=65"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        trs-counts (mapv #(count (html-trs %)) bodies)
-        tables (mapv html-top-table bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Gematria</title>") titles))
-    (is (apply = trs-counts))))    
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Gematria</title>") (:titles results-map)))
+    (is (apply = (:trs-counts results-map)))))    
    
 (deftest philosophy
   (let [urls ["http://ericervin.org/philosophy" "http://ericervin.com/philosophy"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        headers (mapv html-header bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Philosophy USA</title>") titles))    
-    (is (every? #(= % "<h1>Philosophy USA</h1>") headers))))
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Philosophy USA</title>") (:titles results-map)))    
+    (is (every? #(= % "<h1>Philosophy USA</h1>") (:headers results-map)))))
 
 (deftest philosophy-reports
   (let [urls ["http://ericervin.org/philosophy/reports/inst_count" "http://ericervin.com/philosophy/reports/inst_count"]
-        responses (mapv #(client/get % {:throw-exceptions false}) urls)
-        statuses (mapv :status responses)
-        bodies (mapv :body responses)
-        titles (mapv html-title bodies)
-        trs-counts (mapv #(count (html-trs %)) bodies)
-        tables (mapv html-top-table bodies)]
-    (is (every? #(= 200 %) statuses))
-    (is (every? #(= % "<title>Philosophy Degrees Completed by Institution</title>") titles))
-    (is (apply = trs-counts)))) 
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Philosophy Degrees Completed by Institution</title>") (:titles results-map)))
+    (is (apply = (:trs-counts results-map))))) 
 
 (deftest powerball
   (let [urls ["http://ericervin.org/powerball" "http://ericervin.com/powerball"]
