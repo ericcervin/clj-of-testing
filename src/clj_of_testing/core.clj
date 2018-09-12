@@ -1,5 +1,3 @@
-;;for tables add code that sat x chars
-
 (ns clj-of-testing.core
   (:require [clj-http.client :as client]
             [clojure.test :refer [is deftest run-tests]]
@@ -22,7 +20,7 @@
   (html/select (html/html-snippet h) [:tr]))
 
 (defn html-top-table [h]
-  (nth (re-seq #"<table>.*</table>" h) 0))
+  (clojure.string/join (take 512 (nth (re-seq #"(?s)<table.*</table>" h) 0))))
 
 (defn parse-pages [v]
   (let [urls v
@@ -81,7 +79,10 @@
     (is (apply = (:trs-counts results-map)))))    
     
 (deftest destiny-reports
-  (let [urls ["http://ericervin.org/destiny/reports/rarity_count" "http://ericervin.com/destiny/reports/rarity_count"]
+  (let [urls ["http://ericervin.org/destiny/reports/rarity_count" 
+              "http://ericervin.com/destiny/reports/rarity_count"]
+              ;;"http://127.0.0.1:5000/destiny/reports/rarity_count"]
+              
         results-map (parse-pages urls)]
     (is (every? #(= 200 %) (:statuses results-map)))
     (is (every? #(= % "<title>Count by Rarity</title>") (:titles results-map)))
@@ -143,6 +144,7 @@
         results-map (parse-pages urls)]
     (is (every? #(= 200 %) (:statuses results-map)))
     (is (every? #(= % "<title>Philosophy Degrees Completed by Institution</title>") (:titles results-map)))
+    (is (apply = (:tables results-map)))
     (is (apply = (:trs-counts results-map))))) 
 
 (deftest powerball
