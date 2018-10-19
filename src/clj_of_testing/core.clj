@@ -99,7 +99,7 @@
   (let [urls ["http://www.ericervin.org/discogs/releases?" "http://www.ericervin.com/discogs/releases?"]
         results-map (parse-pages urls)]
     (is (every? #(= 200 %) (:statuses results-map)))
-    (is (every? #(= % "<title>Releases by Artist</title>") (:titles results-map)))
+    (is (every? #(= % "<title>Releases by Artist,Title</title>") (:titles results-map)))
     (is (apply = (:trs-counts results-map)))))    
 
 (deftest discogs-reports
