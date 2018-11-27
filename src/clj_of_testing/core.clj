@@ -169,6 +169,13 @@
     (is (every? #(= % "<title>Warhammer Champions</title>") (:titles results-map)))    
     (is (every? #(= % "<h1>Warhammer Champions</h1>") (:headers results-map)))))
 
+(deftest wh-champions-cards
+  (let [urls ["http://ericervin.org/wh_champions/cards?" "http://ericervin.com/wh_champions/cards?"]
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>  Cards</title>") (:titles results-map)))
+    (is (apply = (:trs-counts results-map)))))    
+
 (defn -main []
   (run-tests))
             
