@@ -1,3 +1,4 @@
+
 (ns clj-of-testing.core
   (:require [clj-http.client :as client]
             [clojure.test :refer [is deftest run-tests]]
@@ -160,6 +161,13 @@
     (is (every? #(= 200 %) (:statuses results-map)))
     (is (every? #(= % "<title>Serialism</title>") (:titles results-map)))    
     (is (every? #(= % "<h1>Serialism</h1>") (:headers results-map)))))
+
+(deftest wh-champions
+  (let [urls ["http://ericervin.org/wh_champions" "http://ericervin.com/wh_champions"]
+        results-map (parse-pages urls)]
+    (is (every? #(= 200 %) (:statuses results-map)))
+    (is (every? #(= % "<title>Warhammer Champions</title>") (:titles results-map)))    
+    (is (every? #(= % "<h1>Warhammer Champions</h1>") (:headers results-map)))))
 
 (defn -main []
   (run-tests))
